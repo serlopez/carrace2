@@ -18,46 +18,104 @@ Race.Game = function(game){
 };
 Race.Game.prototype = {
   create: function(game){
+    var tag = null;
+    var nickname = null;
+    var car = null;
+    var ask = true;
+      while(ask){
+	      tag = prompt ("Please enter your tag" , "");
+	      if (tag === null || tag.length > 20) {//user cancelled
+		      ask = false;
+		      break;
+	      }
+	      else if (tag !== '' && isNaN(Number(tag))) {
+		      break;
+	      }
+      }
+      while(ask){
+	      nickname = prompt ("Now enter your nickname" , "");
+	      if (nickname === null || nickname.length > 20) {//user cancelled
+		      ask = false;
+		      break;
+	      }
+	      else if (nickname !== '' && isNaN(Number(nickname))) {
+		      break;
+	      }
+      }
+      while(ask){
+	      car = prompt ("Choose your car (1, 2, 3): " , "");
+	      if (car === null) {//user cancelled
+		      ask = false;
+		      break;
+	      }
+	      else if (car.length == 1 && !isNaN(parseInt(car))) {
+		      break;
+	      }
+      }
+    document.getElementById("tag").innerHTML = tag;
+    document.getElementById("nickname").innerHTML = nickname;
+    document.getElementById("car").innerHTML = car;
+    console.log(tag);
+    console.log(nickname);
+    console.log(car);
     this.bg = this.add.tileSprite(0, 0, this.stage.bounds.width, this.cache.getImage('background').height, 'background');
-    this.houses = this.add.sprite(700, 178, 'houses');
-    this.trees = this.add.sprite(400, 150, 'trees');
-    
-    var style={font: "24px Arial", fill: "#ff0044", align: "center"};
+    this.houses = this.add.sprite(this.world.randomX, 178, 'houses');
+    this.trees = this.add.sprite(this.world.randomX + 300, 150, 'trees');
+    this.badge = this.add.sprite(this.world.centerX, 450, 'badge');
+    this.houses.frame=0;
+    this.trees.frame=0;
     var scoreText = "Score: "+this.score;
-    this.scoreText=game.add.text(10, 400, scoreText, this.style);
-    
-    this.player = this.add.sprite(25, 220, 'lastRental');
+    this.scoreText = game.add.text(10, 400, scoreText);
+    this.scoreText.font = 'Roboto Condensed';
+    this.scoreText.fontSize = 40;
+    this.scoreText.backgroundColor = "white";
+    var badgeText = null;
+    if(car == 1){
+      this.player = this.add.sprite(100, 225, 'laPlaca');
+      this.badgeText = " as la plaka";
+    } else if (car == 2){
+      this.player = this.add.sprite(100, 225, 'bookMobile');
+      this.badgeText = "'s bookmobile";
+    } else if(car == 3){
+      this.player = this.add.sprite(100, 225, 'lastRental');
+      this.badgeText = "'s last rental";
+    }
+    this.badgeText = game.add.text(this.world.centerX + 150, 450, nickname + this.badgeText);
+    this.badgeText.font = 'Bangers';
+    this.badgeText.fontSize = 40;
+    this.world.bringToTop(this.player);
     this.burrito = this.add.sprite(1300, 280, 'burrito');
+    this.world.bringToTop(this.burrito);
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.physics.arcade.enable([this.player, this.burrito]);
     
     this.player.body.collideWorldBounds = true;
     this.camera.follow(this.player);
-    this.player.animations.add('idle',[0, 0, 0, 3, 3, 3, 0, 3, 3, 0, 0, 0, 3, 3, 3, 3, 0, 0, 3], 15, true);
-    this.player.animations.add('roll',[0, 1, 2, 3], 15, true);
-    this.player.animations.play('idle');
+    this.player.animations.add('roll',[0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1], 15, true);
+    this.player.animations.add('ouch',[2, 2, 2, 2, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2], 15, false);
+    this.player.play('roll');
     this.houses.frame=0;
     this.trees.frame=0;
   },
   update: function(game){
     if (this.input.keyboard.isDown(Phaser.Keyboard.LEFT)){
-      this.player.animations.play('roll');
+      this.player.play('roll');
       this.player.x -= this.speed;
     }
     else if (this.input.keyboard.isDown(Phaser.Keyboard.RIGHT)){
       game.physics.arcade.overlap(this.player, this.burrito, this.playerHitBurrito, null, this);
       game.physics.arcade.overlap(this.player, this.glove, this.playerHitGlove, null, this);
-      this.player.animations.play('roll');
+      this.player.play('roll');
       this.player.x += this.speed/2;
       this.burrito.x -= this.speed;
-      this.houses.x -= this.speed;
-      this.trees.x -= this.speed;
+      this.houses.x -= this.speed*2;
+      this.trees.x -= this.speed*2;
       this.bg.tilePosition.x -= this.speed;
       this.player.angle=-0.5;
     }
     else{
       this.player.angle=0;
-      this.player.animations.play('idle');
+      this.player.play('idle');
     }
   },
   playerHitBurrito: function(game){
@@ -68,26 +126,29 @@ Race.Game.prototype = {
     this.glove = this.add.sprite(800, 250, 'glove');
     this.glove.frame = 1;
     this.redLight = this.add.sprite(900, 150, 'redLight');
-    this.glove.animations.add('punch', [0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1], 15, false);
+    this.glove.animations.add('punch', [0, 0, 0, 0, 0, 1, 1, 1, 1, 1], 15, false);
     this.game.physics.arcade.enable([this.player, this.glove]);
     this.burritoCounter += 1;
-    console.log(this.score);
     this.gloveHitCounter = 0;
     if(this.burritoCounter > 5){
-      document.getElementById("finscore").innerHTML = this.score;
-      document.getElementById("finmedals").innerHTML = this.medalArray;
-      this.checkerFlag = this.add.sprite(800, 250, 'checkerFlag');
-      var goodBye = "Game Over";
-      this.goodBye = this.game.add.text(10, 400, scoreText, this.style);
-    }
+      document.getElementById("score").innerHTML = this.score;
+      document.getElementById("medals").innerHTML = this.medalArray;
+      this.checkerFlag = this.add.sprite(100, 100, 'checkerFlag');
+      this.player.destroy();
+      }
   },
   playerHitGlove: function(game, i, j){
     while(this.gloveHitCounter === 0){
-      var qArray = ["The information you pull from research databases, the library catalog, or even the web, is only as good as the (blank) you use.", "What are some of the ways you can limit your database search results to find information closer to what you need?", "One of the quickest ways to determine if an article could potentially have the information you need is:", "You found some really good articles for your research paper, how can you put them all in one place, ready to get to when you need them?", "What two database features could make your research a lot easier?"];
-      var aArray = ["Keywords","Passwords","Browser","Computer", "Results limited by Full text availability, Peer review, and publication date" , "Results limited by Audience, content and writing style" , "Whether the search results are books, articles or websites" , "Results limited by artice’s font style, font size and number of pages" , "Read the article’s abstract or summary" , "Any old article will do" , "Ask your teacher" , "Read the article from beginning to end" , "Use the database’s email tool to send the articles to myself" , "Print them out" , "Commit them to memory" , "When I need the articles, I can just search for them again" , "Email article to self and citation builder features" , "Fill-in-the-blank citation templates and consultations with data bassists" , "Citation tutorials and auto-filled bibliographies" , "Databases only have articles"];
+      var qArray = ["q1) Out of the four options below, pick the best description of a database.", "q2) It is important to know how to develop and use keywords when using databases because", "q3) Some of these articles are quite long, It could take a long time to read a whole one to see if we can use it.", "q4) You went to the databases and found several really good articles. Since it is not feasible to do all your research in one sitting, you will need to et to your articles later , you will", "q5) Library databases come with several tools that make your research. One of the tools you will probably use the most is"];
+      var aArray = ["a1) An electronic container full of data, organized under certain rules.","a2) Articles in the computer found in the library.","a3) Microsoft Access","a4) Something you have to know about to be a hacker.", "a1) databases match articles with keywords, and your keywords should describe your topic." , "a2) we cannot type whole phrases, like in Google." , "a3) it is a useful skill to have." , "a4) card catalogs are gone now." , "a1) We don’t expect you to. Article abstracts and summaries do a pretty good job at that." , "a2) In most cases, a quick scan will tell how relevant the article is to your research." , "a3) That’s why you should only cite one or two articles." , "a4) But you can ask a librarian for articles no longer than 5 pages." , "a1) email all the articles to yourself using the library database’s email feature." , "a2) bookmark them or save them on each database you visit." , "a3) search for the articles again next time you need them." , "a4) google them." , "a1) citations, automatically made for each article you find, in the more popular styles." , "a2) download articles in full text." , "a3) permalinks to the articles." , "a4) autocomplete keyword fields."];
       var question = qArray[this.i];
       this.i++;
-      this.question=this.game.add.text(game.world.centerX-300, 0, question, this.style);
+      this.question=this.game.add.text(game.world.centerX-300, 0, question);
+      this.question.font='Roboto Condensed';
+      this.question.fontSize = 25;
+      this.question.backgroundColor = '#f5f5dc';
+      this.question.wordWrap = true;
+      this.question.wordWrapWidth = 900;
       var answer1 = aArray[this.j];
       this.j++;
       var answer2 = aArray[this.j];
@@ -96,13 +157,25 @@ Race.Game.prototype = {
       this.j++;
       var answer4 = aArray[this.j];
       this.j++;
-      var posArray = [30, 60, 90, 120];
+      var posArray = [60, 90, 120, 150];
       
       posArray = this.shuffle(posArray);
-      this.answer1=this.game.add.text(game.world.centerX-300, posArray[0], answer1, this.style);
-      this.answer2=this.game.add.text(game.world.centerX-300, posArray[1], answer2, this.style);
-      this.answer3=this.game.add.text(game.world.centerX-300, posArray[2], answer3, this.style);
-      this.answer4=this.game.add.text(game.world.centerX-300, posArray[3], answer4, this.style);
+      this.answer1=this.game.add.text(game.world.centerX-300, posArray[0], answer1);
+      this.answer1.font='Roboto Condensed';
+      this.answer1.fontSize = 25;
+      this.answer1.backgroundColor = '#f5f5dc';
+      this.answer2=this.game.add.text(game.world.centerX-300, posArray[1], answer2);
+      this.answer2.font='Roboto Condensed';
+      this.answer2.fontSize = 25;
+      this.answer2.backgroundColor = '#f5f5dc';
+      this.answer3=this.game.add.text(game.world.centerX-300, posArray[2], answer3);
+      this.answer3.font='Roboto Condensed';
+      this.answer3.fontSize = 25;
+      this.answer3.backgroundColor = '#f5f5dc';
+      this.answer4=this.game.add.text(game.world.centerX-300, posArray[3], answer4);
+      this.answer4.font='Roboto Condensed';
+      this.answer4.fontSize = 25;
+      this.answer4.backgroundColor = '#f5f5dc';
       //find way to show answers sorted ramdomly to make answer1 always the correct one, saves on code, i think.
       this.answer1.inputEnabled = true;
       this.answer2.inputEnabled = true;
@@ -118,14 +191,14 @@ Race.Game.prototype = {
   answerSubmit: function(game){
     this.medals = this.add.sprite(this.medalPos, 25, 'medals');
     this.medals.frame = this.medalFrame;
-    this.medalArray.push(this.medalFrame);
+    this.medalArray.push("<img src = img/medal"+this.medalFrame+".png>");
     this.question.destroy();
     this.answer1.destroy();
     this.answer2.destroy();
     this.answer3.destroy();
     this.answer4.destroy();
-    this.game.physics.arcade.moveToXY(this.player, 25, 220, 20, 2000);
-    this.medalPos += 15;
+    this.game.physics.arcade.moveToXY(this.player, 25, 225, 20, 2000);
+    this.medalPos += 25;
     this.medalFrame += 1;
     this.burrito = this.add.sprite(1300, 280, 'burrito');
     this.game.physics.arcade.enable([this.burrito]);
@@ -137,14 +210,16 @@ Race.Game.prototype = {
     this.scoreText=this.game.add.text(10, 400, this.scoreText, this.style);
   },
   wrongSubmit1: function(game){
-    this.glove.animations.play('punch');
+    var music = this.add.audio('carPunch');
+    music.play();
+    this.glove.play('punch');
+    this.player.play('ouch');
     this.question.destroy();
     this.answer1.destroy();
     this.answer2.destroy();
     this.answer3.destroy();
     this.answer4.destroy();
-    this.game.physics.arcade.moveToXY(this.player, this.player.x, 220, 20, 2000);
-    this.game.physics.arcade.moveToXY(this.player, 25, 220, 20, 2000);
+    this.game.physics.arcade.moveToXY(this.player, 25, 225, 20, 2000);
     this.burrito = this.add.sprite(1300, 280, 'burrito');
     this.game.physics.arcade.enable([this.burrito]);
     this.redLight.kill();
@@ -156,14 +231,16 @@ Race.Game.prototype = {
     this.scoreText=this.game.add.text(10, 400, this.scoreText, this.style);
   },
   wrongSubmit2: function(game){
+    var music = this.add.audio('carPunch');
+    music.play();
     this.glove.animations.play('punch');
+    this.player.play('ouch');
     this.question.destroy();
     this.answer1.destroy();
     this.answer2.destroy();
     this.answer3.destroy();
     this.answer4.destroy();
-    this.game.physics.arcade.moveToXY(this.player, this.player.x, 220, 20, 2000);
-    this.game.physics.arcade.moveToXY(this.player, 25, 220, 20, 2000);
+    this.game.physics.arcade.moveToXY(this.player, 25, 225, 20, 2000);
     this.burrito = this.add.sprite(1300, 280, 'burrito');
     this.game.physics.arcade.enable([this.burrito]);
     this.redLight.kill();
@@ -175,14 +252,16 @@ Race.Game.prototype = {
     this.scoreText=this.game.add.text(10, 400, this.scoreText, this.style);
   },
   wrongSubmit3: function(game){
-    this.glove.animations.play('punch');
+    var music = this.add.audio('carPunch');
+    music.play();
+    this.glove.play('punch');
+    this.player.play('ouch');
     this.question.destroy();
     this.answer1.destroy();
     this.answer2.destroy();
     this.answer3.destroy();
     this.answer4.destroy();
-    this.game.physics.arcade.moveToXY(this.player, this.player.x, 220, 20, 2000);
-    this.game.physics.arcade.moveToXY(this.player, 25, 220, 20, 2000);
+    this.game.physics.arcade.moveToXY(this.player, 25, 225, 20, 2000);
     this.burrito = this.add.sprite(1300, 280, 'burrito');
     this.game.physics.arcade.enable([this.burrito]);
     this.redLight.kill();
