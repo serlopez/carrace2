@@ -3,17 +3,15 @@
   <head>
     <meta charset="utf-8">
     <title>The Amazing Car Race</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Bangers" rel="stylesheet">
     <style>
     body
       {
       margin: 0;
       background: #B4D9E7;
       }
-    #tag {}
-    #nickname {}
-    #car{}
-    #finscore{}
-    #medals{}
     </style>
     <script src="src/phaser-2.0.7.min.js"></script>
     <script src="src/Boot.js"></script>
@@ -22,24 +20,25 @@
     <script src="src/Game.js"></script>
   </head>
   <body>
-    <div id="tag">
-      
-    </div>
-    <div id="nickname">
-      
-    </div>
-    <div id="car">
-      
-    </div>
-    <div id="finscore">
-      
-    </div>
-    <div id="finmedals">
-      
-    </div>
+    <form id = "submitform" action="insertscores.php" method="post">
+      <div id="tag" name="tag"></div>
+      <div id="nickname" name="nickname"></div>
+      <div id="car" name="car"></div>
+      <div id="score" name="score"></div>
+      <div id="medals" name="medals"></div>
+      <input type = "submit" value = "submit">
+    </form>
     <script>
       (function(){
         var game = new Phaser.Game(1052, 512, Phaser.AUTO, 'game');
+        WebFontConfig = {
+          active: function(){
+          },
+          google: {
+            families: ['Roboto', 'Bangers']
+          }
+        }
+        
         game.state.add('Boot', Race.Boot);
         game.state.add('Preloader', Race.Preloader);
         game.state.add('MainMenu', Race.MainMenu);
